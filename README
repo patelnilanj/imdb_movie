@@ -1,0 +1,10 @@
+
+This django project is created for testing rest api with some customization in imdb api.
+
+app api are with POST method
+
+Search movie by title : localhost:8000/title/
+Search movie by id : localhost:8000/id/
+Search movie by year : localhost:8000/year/
+Search movie by genre : localhost:8000/genre/
+
