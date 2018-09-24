@@ -8,3 +8,8 @@ Search movie by id : localhost:8000/id/
 Search movie by year : localhost:8000/year/
 Search movie by genre : localhost:8000/genre/
 
+
+to update data ( Genre and Ratings ) give id of the movie Example :
+
+   If you want to update Genre and Ratings of movie who's id is 2.
+   use api localhost:8000/update/<id> , where ID is 2. so end input will be localhost:8000/update/2

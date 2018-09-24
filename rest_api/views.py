@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render,get_object_or_404
 from .models import moview_details
 from .serializers import MovieSerializer
 
@@ -8,95 +8,119 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
+from rest_framework.generics import GenericAPIView
+from rest_framework.mixins import UpdateModelMixin
+from rest_framework.viewsets import ModelViewSet
+
 from django.http import Http404,JsonResponse,HttpResponse
-from django.core import serializers
-from django.conf import settings
-import json,requests,omdb
-from django.core import serializers
+import json,requests
 
 
 @api_view(["POST"])
-def mv_detail_titl(title_data):
+def mv_detail_titl(title_data):   #search movie by title
     title = (title_data.body).decode('UTF-8')
-    var = 0
     try:
         title_data = moview_details.objects.filter(Title__icontains=title)
-        # print('data from local',title_data.values())
-        # print('data from local',title_data.values()[0])
-        # print('data from local',title_data.values()[0]['Title'])
         if title_data.values()[0] is not None:
-            # print('found from local', title_data.values()[0])
             return JsonResponse(title_data.values()[0], safe=False)
     except Exception as yt:
-        # print('not found in local db',yt)
+        print('not found in local db',yt)
         # var = 1
         dep_title = title.replace(' ','+')
         response = requests.get('http://www.omdbapi.com/?t=%s&type=movie&apikey=fe42ff19' % dep_title)
         geodata = response.json()
+
+
+        new_movie, created = moview_details.objects.get_or_create(
+            Title=geodata['Title'],
+            # imdbID=geodata['imdbID'],
+            Year=geodata['Year'],
+            Genre=geodata['Genre'],
+            Ratings=geodata['imdbRating']
+        )
+        if created:
+            new_movie.save()
+
         return JsonResponse(geodata)
 
 @api_view(["POST"])
-def mv_detail_id(id_data):
-    # print('\ntitle data:%s\n' % (title_data.body).decode("utf-8"))
+def mv_detail_id(id_data):      #search movie by id ( if not found in db than it should IMDB id)
     id = (id_data.body).decode('UTF-8')
     try:
         id_data = moview_details.objects.filter(imdbID=id)
-        # print('data from local',title_data.values())
-        # print('data from local',title_data.values()[0])
-        # print('data from local',title_data.values()[0]['Title'])
+
         if id_data.values()[0] is not None:
-            # print('found from local', title_data.values()[0])
             return JsonResponse(id_data.values()[0], safe=False)
     except Exception as yt:
-        # print('not found in local db',yt)
+        print('not found in local db',yt)
         dep_title = id.replace(' ','+')
         response = requests.get('http://www.omdbapi.com/?i=%s&type=movie&apikey=fe42ff19' % dep_title)
         geodata = response.json()
+        new_movie, created = moview_details.objects.get_or_create(
+            Title=geodata['Title'],
+            # imdbID=geodata['imdbID'],
+            Year=geodata['Year'],
+            Genre=geodata['Genre'],
+            Ratings=geodata['imdbRating']
+        )
+        if created:
+            new_movie.save()
         return JsonResponse(geodata)
 
 @api_view(["POST"])
-def mv_detail_year(year_data):
-    # print('\ntitle data:%s\n' % (title_data.body).decode("utf-8"))
+def mv_detail_year(year_data):          #search movie by year
     year = (year_data.body).decode('UTF-8')
     try:
         year_data = moview_details.objects.filter(Year=year)
-        # print('data from local',title_data.values())
-        # print('data from local',title_data.values()[0])
-        # print('data from local',title_data.values()[0]['Title'])
+
         if year_data.values()[0] is not None:
-            # print('found from local', title_data.values()[0])
             return JsonResponse(year_data.values()[0], safe=False)
     except Exception as yt:
-        # print('not found in local db',yt)
+        print('not found in local db',yt)
         dep_title = year.replace(' ','+')
         response = requests.get('http://www.omdbapi.com/?y=%s&type=movie&apikey=fe42ff19' % dep_title)
         geodata = response.json()
+        new_movie, created = moview_details.objects.get_or_create(
+            Title=geodata['Title'],
+            # imdbID=geodata['imdbID'],
+            Year=geodata['Year'],
+            Genre=geodata['Genre'],
+            Ratings=geodata['imdbRating']
+        )
+        if created:
+            new_movie.save()
         return JsonResponse(geodata)
 
 @api_view(["POST"])
-def mv_detail_genre(genre_data):
-    # print('\ntitle data:%s\n' % (title_data.body).decode("utf-8"))
+def mv_detail_genre(genre_data):        #search movie by genre
     genre = (genre_data.body).decode('UTF-8')
     try:
         genre_data = moview_details.objects.filter(Genre__icontains=genre)
-        # print('data from local',genre_data.values())
-        # print('data from local',genre_data.values()[0])
-        # print('data from local',genre_data.values()[0]['Title'])
+
         json_posts = json.dumps(list(genre_data.values()))
-        # print("json",json_posts)
         return JsonResponse(json_posts, safe=False)
     except Exception as yt:
-        # print('not found in local db',yt)
+        print('not found in local db',yt)
         dep_title = genre.replace(' ','+')
         response = requests.get('http://www.omdbapi.com/?g=%s&type=movie&apikey=fe42ff19' % dep_title)
         geodata = response.json()
+        new_movie, created = moview_details.objects.get_or_create(
+            Title=geodata['Title'],
+            # imdbID=geodata['imdbID'],
+            Year=geodata['Year'],
+            Genre=geodata['Genre'],
+            Ratings=geodata['imdbRating']
+        )
+        if created:
+            new_movie.save()
         return JsonResponse(geodata)
 
 
-@api_view(["POST"])
-def get_data(da_data):
-    try:
-        data=json.loads(da_data.body)
-        return JsonResponse("This will be the data:"+data+"",safe=False)
-    except ValueError as e:
-        return Response(e.args[0],status.HTTP_400_BAD_REQUEST)
+
+class UpdateView(GenericAPIView, UpdateModelMixin):     # update data (Genre,Ratings) by id
+
+    queryset = moview_details.objects.all()
+    serializer_class = MovieSerializer
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)

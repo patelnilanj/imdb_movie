@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path,re_path
 from rest_api import views
 
 urlpatterns = [
@@ -23,7 +23,6 @@ urlpatterns = [
     path('id/', views.mv_detail_id),
     path('year/', views.mv_detail_year),
     path('genre/', views.mv_detail_genre),
-    path('get_data/', views.get_data),
-    # path('movies/', views.IndexView.as_view(), name='index'),
+    re_path(r'^update/(?P<pk>\d+)/$', views.UpdateView.as_view(), name='update_details'),
 
 ]
